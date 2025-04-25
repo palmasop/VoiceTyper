@@ -22,5 +22,11 @@
   <ItemGroup>
     <Compile Include="Product.wxs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <WixExtension Include="WixUIExtension" />
+    <WixExtension Include="WixUtilExtension" />
+  </ItemGroup>
+
   <Import Project="$(WixTargetsPath)" Condition=" '$(WixTargetsPath)' != '' " />
 </Project> 

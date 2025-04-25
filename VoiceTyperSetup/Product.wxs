@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+    <?define SourceDir="..\VoiceTyper\bin\Release\net6.0-windows\win-x64\publish" ?>
+    
     <Product Id="*" 
              Name="VoiceTyper" 
              Language="1033" 
@@ -18,6 +22,35 @@
         <!-- Application icon -->
         <Icon Id="icon.ico" SourceFile="..\VoiceTyper\image\icon.ico"/>
         <Property Id="ARPPRODUCTICON" Value="icon.ico"/>
+
+        <!-- Add launch option -->
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch VoiceTyper"/>
+        <Property Id="WixShellExecTarget" Value="[#VoiceTyperEXE]"/>
+        <CustomAction Id="LaunchApplication" 
+                      BinaryKey="WixCA" 
+                      DllEntry="WixShellExec"
+                      Impersonate="yes" />
+
+        <!-- Use WixUI_InstallDir dialog set -->
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+        <UIRef Id="WixUI_InstallDir" />
+        
+        <!-- License file -->
+        <WixVariable Id="WixUILicenseRtf" Value="license.rtf"/>
+
+        <!-- Required UI references -->
+        <UIRef Id="WixUI_Common" />
+
+        <!-- Configure ExitDialog -->
+        <UI>
+            <Publish Dialog="ExitDialog"
+                     Control="Finish"
+                     Event="DoAction"
+                     Value="LaunchApplication">
+                WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed
+            </Publish>
+        </UI>
 
         <!-- Define the directory structure -->
         <Directory Id="TARGETDIR" Name="SourceDir">

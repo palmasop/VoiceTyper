@@ -8,7 +8,7 @@ VoiceTyper is a Windows application that enables voice-to-text input using Micro
 ## ⬇️ Quick Download
 
 1. Go to the [Releases](https://github.com/palmasop/VoiceTyper/releases) page
-2. Download the latest `VoiceTyper_Setup.exe`
+2. Download the latest `VoiceTyper_Setup.msi`
 3. Run the installer and follow the prompts
 4. Launch VoiceTyper from the Start Menu or desktop shortcut
 
@@ -124,7 +124,7 @@ If you encounter any issues:
 
 1. Build the main project in Release configuration
 2. Build the `installer_wix` project to generate the installer
-3. The installer will be created at `installer_wix\bin\Release\VoiceTyper_Setup.exe`
+3. The installer will be created at `installer_wix\bin\Release\VoiceTyper_Setup.msi`
 
 You can also build everything at once using:
 
