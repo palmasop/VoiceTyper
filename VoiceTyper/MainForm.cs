@@ -744,5 +744,11 @@ namespace VoiceTyper
             // No need for cleanup here as it's handled in the Exit menu item
             // This prevents double-disposal issues
         }
+
+        public void LoadSettings(AppSettings settings)
+        {
+            this.settings = settings;
+            UpdateLanguageMenuCheckedState(settings.Language);
+        }
     }
 }

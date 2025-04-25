@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" 
+             Name="VoiceTyper" 
+             Language="1033" 
+             Version="1.0.0.0" 
+             Manufacturer="Your Name" 
+             UpgradeCode="{12345678-1234-1234-1234-123456789012}">
+        
+        <Package InstallerVersion="200" 
+                 Compressed="yes" 
+                 InstallScope="perMachine" 
+                 Platform="x64"/>
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <MediaTemplate EmbedCab="yes"/>
+
+        <!-- Application icon -->
+        <Icon Id="icon.ico" SourceFile="..\VoiceTyper\image\icon.ico"/>
+        <Property Id="ARPPRODUCTICON" Value="icon.ico"/>
+
+        <!-- Define the directory structure -->
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLFOLDER" Name="VoiceTyper">
+                    <Directory Id="ImageDir" Name="image" />
+                </Directory>
+            </Directory>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="VoiceTyper"/>
+            </Directory>
+        </Directory>
+
+        <!-- Define components -->
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Component Id="MainExecutable" Guid="{23456789-2345-2345-2345-234567890123}" Win64="yes">
+                <File Id="VoiceTyperEXE" 
+                      Name="VoiceTyper.exe" 
+                      Source="..\VoiceTyper\bin\Release\net6.0-windows\win-x64\publish\VoiceTyper.exe" 
+                      KeyPath="yes">
+                    <Shortcut Id="StartMenuShortcut" 
+                              Directory="ApplicationProgramsFolder"
+                              Name="VoiceTyper"
+                              WorkingDirectory="INSTALLFOLDER"
+                              Icon="icon.ico"
+                              IconIndex="0"
+                              Advertise="yes"/>
+                </File>
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id="ImageDir">
+            <Component Id="IconFiles" Guid="{34567890-3456-3456-3456-345678901234}" Win64="yes">
+                <File Id="IconPNG" 
+                      Name="icon.png" 
+                      Source="..\VoiceTyper\image\icon.png" 
+                      KeyPath="yes"/>
+                <File Id="IconICO" 
+                      Name="icon.ico" 
+                      Source="..\VoiceTyper\image\icon.ico"/>
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="ApplicationShortcut" Guid="{45678901-4567-4567-4567-456789012345}">
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                <RegistryValue Root="HKCU" 
+                              Key="Software\VoiceTyper" 
+                              Name="installed" 
+                              Type="integer" 
+                              Value="1" 
+                              KeyPath="yes"/>
+            </Component>
+        </DirectoryRef>
+
+        <!-- Define features -->
+        <Feature Id="ProductFeature" Title="VoiceTyper" Level="1">
+            <ComponentRef Id="MainExecutable" />
+            <ComponentRef Id="IconFiles" />
+            <ComponentRef Id="ApplicationShortcut" />
+        </Feature>
+    </Product>
+</Wix> 
