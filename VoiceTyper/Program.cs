@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace VoiceTyper;
 
@@ -15,6 +16,7 @@ internal static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 
         // Initialize application configuration
         AppSettings settings = AppSettings.Load();

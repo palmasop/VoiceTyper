@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using WindowsInput = InputSimulatorStandard.InputSimulator;
 using IInputSimulator = InputSimulatorStandard.IInputSimulator;
 using System.Linq;
+using Microsoft.Win32;
 
 namespace VoiceTyper
 {
@@ -117,11 +118,15 @@ namespace VoiceTyper
 
             InitializeComponent();
             
-            // Hide the form completely
+            // Set window title
+            this.Text = "VoiceTyper";
+            
+            // Completely hide the form
             this.FormBorderStyle = FormBorderStyle.None;
             this.ShowInTaskbar = false;
             this.Opacity = 0;
-            this.Size = new Size(0, 0);
+            this.Size = new Size(1, 1);
+            this.WindowState = FormWindowState.Minimized;
 
             // Initialize components
             InitializeTrayIcon();
@@ -146,6 +151,16 @@ namespace VoiceTyper
             this.FormClosing += new FormClosingEventHandler(MainForm_FormClosing);
         }
 
+        protected override void SetVisibleCore(bool value)
+        {
+            if (!this.IsHandleCreated)
+            {
+                CreateHandle();
+                value = false;
+            }
+            base.SetVisibleCore(false);
+        }
+
         private void InitializeTrayIcon()
         {
             trayMenu = new ContextMenuStrip();
@@ -156,6 +171,8 @@ namespace VoiceTyper
             // Then add other menu items
             trayMenu.Items.Add("Settings", null, (s, e) => ShowSettings());
             trayMenu.Items.Add("Debug Logs", null, (s, e) => debugForm.Show());
+            trayMenu.Items.Add("-");
+            trayMenu.Items.Add("Run at Startup", null, (s, e) => ToggleStartup());
             trayMenu.Items.Add("-");
             trayMenu.Items.Add("Exit", null, async (s, e) => 
             {
@@ -749,6 +766,43 @@ namespace VoiceTyper
         {
             this.settings = settings;
             UpdateLanguageMenuCheckedState(settings.Language);
+        }
+
+        private void ToggleStartup()
+        {
+            try
+            {
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                    true))
+                {
+                    if (key != null)
+                    {
+                        string appPath = Application.ExecutablePath;
+                        string? currentValue = key.GetValue("VoiceTyper") as string;
+
+                        if (currentValue == null)
+                        {
+                            // Add to startup
+                            key.SetValue("VoiceTyper", appPath);
+                            MessageBox.Show("VoiceTyper will now run at startup.", "Startup Enabled", 
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            // Remove from startup
+                            key.DeleteValue("VoiceTyper", false);
+                            MessageBox.Show("VoiceTyper will no longer run at startup.", "Startup Disabled", 
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error managing startup settings: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
