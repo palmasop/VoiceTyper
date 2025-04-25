@@ -26,18 +26,21 @@ jobs:
       - name: Publish
         run: dotnet publish --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true --no-restore
 
-      - name: Create Release ZIP
+      - name: Download Inno Setup
         run: |
-          cd bin\Release\net6.0-windows\win-x64\publish
-          7z a -tzip VoiceTyper.zip VoiceTyper.exe
-          copy VoiceTyper.zip ..\..\..\..\..
-        shell: cmd
+          Invoke-WebRequest "https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe" -OutFile "innosetup.exe"
+          Start-Process -FilePath "innosetup.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
+
+      - name: Create Installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\setup.iss"
+        shell: pwsh
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: VoiceTyper.zip
+          files: dist/VoiceTyper_Setup.exe
           draft: false
           prerelease: false
           generate_release_notes: true

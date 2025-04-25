@@ -9,9 +9,9 @@ VoiceTyper is a Windows application that enables voice-to-text input using Micro
 
 ## ⬇️ Quick Download
 
-[![Download Latest Release](https://img.shields.io/github/v/release/palmasop/VoiceTyper?label=Download%20Latest&style=for-the-badge&color=blue)](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper.zip)
+[![Download Latest Release](https://img.shields.io/github/v/release/palmasop/VoiceTyper?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper_Setup.exe)
 
-Just download, unzip, and run `VoiceTyper.exe`!
+Just download and run the installer!
 
 [View All Releases](https://github.com/palmasop/VoiceTyper/releases) | [Report Bug](https://github.com/palmasop/VoiceTyper/issues)
 
@@ -28,19 +28,17 @@ Just download, unzip, and run `VoiceTyper.exe`!
 - Real-time speech recognition
 - Secure Azure Speech Service configuration
 
-## Download
+## Installation
 
-### Quick Start
-
-1. Go to [Releases](https://github.com/palmasop/VoiceTyper/releases)
-2. Download `VoiceTyper.zip` from the latest release
-3. Extract the zip file
-4. Run `VoiceTyper.exe`
-
-### Requirements
-
-- Windows 10 or later (64-bit)
-- An Azure Speech Service subscription (for the API key and region)
+1. Download [VoiceTyper_Setup.exe](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper_Setup.exe)
+2. Run the installer
+3. Follow the installation wizard
+4. Launch VoiceTyper from the Start Menu or desktop shortcut
+5. Configure your Azure Speech Service settings:
+   - Right-click the tray icon
+   - Select "Settings"
+   - Enter your Azure region and key
+   - Choose your preferred language
 
 ## First-Time Setup
 
