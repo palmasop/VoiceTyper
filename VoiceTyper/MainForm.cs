@@ -12,6 +12,7 @@ using WindowsInput = InputSimulatorStandard.InputSimulator;
 using IInputSimulator = InputSimulatorStandard.IInputSimulator;
 using System.Linq;
 using Microsoft.Win32;
+using System.Text.Json;
 
 namespace VoiceTyper
 {
@@ -172,8 +173,6 @@ namespace VoiceTyper
             trayMenu.Items.Add("Settings", null, (s, e) => ShowSettings());
             trayMenu.Items.Add("Debug Logs", null, (s, e) => debugForm.Show());
             trayMenu.Items.Add("-");
-            trayMenu.Items.Add("Run at Startup", null, (s, e) => ToggleStartup());
-            trayMenu.Items.Add("-");
             trayMenu.Items.Add("Exit", null, async (s, e) => 
             {
                 // Ensure we properly cleanup and exit
@@ -309,12 +308,20 @@ namespace VoiceTyper
 
         public void ShowSettings()
         {
+            // Stop voice capture if it's active
+            if (isRecording)
+            {
+                StopAndTranscribe();
+            }
+
             var settingsForm = new SettingsForm(
                 settings.Language, 
                 settings.Hotkey, 
                 settings.HotkeyModifiers,
                 settings.AzureRegion,
-                settings.AzureSubscriptionKey
+                settings.AzureSubscriptionKey,
+                settings.IncludePunctuation,
+                settings.RunAtStartup
             );
             
             // Handle settings changes
@@ -388,7 +395,57 @@ namespace VoiceTyper
                 }
             };
 
+            settingsForm.PunctuationChanged += (includePunctuation) =>
+            {
+                if (settings.IncludePunctuation != includePunctuation)
+                {
+                    settings.IncludePunctuation = includePunctuation;
+                    settings.Save();
+                    recognizer?.Dispose();
+                    InitializeSpeechRecognizer();
+                }
+            };
+
+            settingsForm.StartupChanged += (runAtStartup) =>
+            {
+                if (settings.RunAtStartup != runAtStartup)
+                {
+                    settings.RunAtStartup = runAtStartup;
+                    settings.Save();
+                    UpdateStartupRegistry(runAtStartup);
+                }
+            };
+
             settingsForm.Show();
+        }
+
+        private void UpdateStartupRegistry(bool enable)
+        {
+            try
+            {
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                    true))
+                {
+                    if (key != null)
+                    {
+                        string appPath = Application.ExecutablePath;
+                        if (enable)
+                        {
+                            key.SetValue("VoiceTyper", appPath);
+                        }
+                        else
+                        {
+                            key.DeleteValue("VoiceTyper", false);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error managing startup settings: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void InitializeLanguageMenu()
@@ -454,6 +511,11 @@ namespace VoiceTyper
                 Console.WriteLine($"Using language: {settings.Language}");
                 config.SetProperty("SpeechServiceConnection_LatencyOptimizationEnabled", "1");
                 config.SetProperty("SpeechServiceConnection_ContinuousDictation", "1");
+                
+                // Configure punctuation settings
+                config.SetServiceProperty("punctuation", 
+                    settings.IncludePunctuation ? "automatic" : "explicit", 
+                    ServicePropertyChannel.UriQueryParameter);
 
                 var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
                 recognizer = new SpeechRecognizer(config, audioConfig);
@@ -464,6 +526,25 @@ namespace VoiceTyper
                     if (e.Result.Reason == ResultReason.RecognizedSpeech)
                     {
                         var text = e.Result.Text;
+                        // Get the raw recognition result without automatic formatting
+                        var rawText = e.Result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult);
+                        if (!string.IsNullOrEmpty(rawText))
+                        {
+                            try
+                            {
+                                // Parse the JSON to get the display text
+                                var jsonDoc = System.Text.Json.JsonDocument.Parse(rawText);
+                                if (jsonDoc.RootElement.TryGetProperty("DisplayText", out var displayText))
+                                {
+                                    text = displayText.GetString() ?? text;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error parsing recognition result: {ex.Message}");
+                            }
+                        }
+
                         Console.WriteLine($"Recognized text: {text}");
                         if (!string.IsNullOrEmpty(text))
                         {
@@ -486,11 +567,15 @@ namespace VoiceTyper
 
                 recognizer.Recognizing += (s, e) =>
                 {
-                    Console.WriteLine($"Recognizing in progress: {e.Result.Text}");
-                    this.BeginInvoke(new Action(() =>
+                    // Only log the interim result, don't type it
+                    if (!string.IsNullOrEmpty(e.Result.Text))
                     {
-                        UpdateStatus(!string.IsNullOrEmpty(e.Result.Text));
-                    }));
+                        Console.WriteLine($"Recognizing in progress: {e.Result.Text}");
+                        this.BeginInvoke(new Action(() =>
+                        {
+                            UpdateStatus(true);
+                        }));
+                    }
                 };
 
                 recognizer.SessionStarted += (s, e) =>
@@ -619,7 +704,9 @@ namespace VoiceTyper
                         settings.Hotkey,
                         settings.HotkeyModifiers,
                         settings.AzureRegion,
-                        settings.AzureSubscriptionKey
+                        settings.AzureSubscriptionKey,
+                        settings.IncludePunctuation,
+                        settings.RunAtStartup
                     );
 
                     // Highlight invalid fields
@@ -656,6 +743,20 @@ namespace VoiceTyper
                         }
                     };
 
+                    settingsForm.HotkeyCapturingStateChanged += (isCapturing) =>
+                    {
+                        if (isCapturing && isHotkeyEnabled)
+                        {
+                            UnregisterHotKey(this.Handle, HOTKEY_ID);
+                            isHotkeyEnabled = false;
+                        }
+                        else if (!isCapturing && !isHotkeyEnabled)
+                        {
+                            RegisterHotKey(this.Handle, HOTKEY_ID, settings.HotkeyModifiers, (int)settings.Hotkey);
+                            isHotkeyEnabled = true;
+                        }
+                    };
+
                     settingsForm.AzureConfigChanged += (newRegion, newKey) =>
                     {
                         bool needRestart = false;
@@ -679,6 +780,27 @@ namespace VoiceTyper
                             settings.Save();
                             recognizer?.Dispose();
                             InitializeSpeechRecognizer();
+                        }
+                    };
+
+                    settingsForm.PunctuationChanged += (includePunctuation) =>
+                    {
+                        if (settings.IncludePunctuation != includePunctuation)
+                        {
+                            settings.IncludePunctuation = includePunctuation;
+                            settings.Save();
+                            recognizer?.Dispose();
+                            InitializeSpeechRecognizer();
+                        }
+                    };
+
+                    settingsForm.StartupChanged += (runAtStartup) =>
+                    {
+                        if (settings.RunAtStartup != runAtStartup)
+                        {
+                            settings.RunAtStartup = runAtStartup;
+                            settings.Save();
+                            UpdateStartupRegistry(runAtStartup);
                         }
                     };
 
@@ -766,6 +888,25 @@ namespace VoiceTyper
         {
             this.settings = settings;
             UpdateLanguageMenuCheckedState(settings.Language);
+
+            // Check if app is in startup
+            try
+            {
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"))
+                {
+                    if (key != null)
+                    {
+                        string? regValue = key.GetValue("VoiceTyper") as string;
+                        settings.RunAtStartup = (regValue != null && regValue == Application.ExecutablePath);
+                        settings.Save();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking startup registry: {ex.Message}");
+            }
         }
 
         private void ToggleStartup()

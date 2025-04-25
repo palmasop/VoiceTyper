@@ -22,16 +22,22 @@ namespace VoiceTyper
         private Label azureKeyLabel = new();
         private TextBox azureKeyTextBox = new();
         private Label validationLabel = new();
+        private CheckBox punctuationCheckBox = new();
+        private CheckBox startupCheckBox = new();
 
         public delegate void LanguageChangedHandler(string newLanguage);
         public delegate void HotkeyChangedHandler(Keys newHotkey, int newModifiers);
         public delegate void HotkeyCapturingStateHandler(bool isCapturing);
         public delegate void AzureConfigChangedHandler(string region, string key);
+        public delegate void PunctuationChangedHandler(bool includePunctuation);
+        public delegate void StartupChangedHandler(bool runAtStartup);
 
         public event LanguageChangedHandler? LanguageChanged;
         public event HotkeyChangedHandler? HotkeyChanged;
         public event HotkeyCapturingStateHandler? HotkeyCapturingStateChanged;
         public event AzureConfigChangedHandler? AzureConfigChanged;
+        public event PunctuationChangedHandler? PunctuationChanged;
+        public event StartupChangedHandler? StartupChanged;
 
         public string SelectedLanguage { get; private set; }
         public Keys SelectedHotkey { get; private set; }
@@ -47,6 +53,8 @@ namespace VoiceTyper
         private HashSet<Keys> pressedKeys = new();
         private System.Windows.Forms.Timer? keyTimer;
         private bool isAzureConfigValid = true;
+        private bool includePunctuation;
+        private bool runAtStartup;
 
         // Default values
         private const string DEFAULT_LANGUAGE = "zh-HK";
@@ -60,13 +68,15 @@ namespace VoiceTyper
             { "en-US", "English" }
         };
 
-        public SettingsForm(string currentLanguage, Keys currentHotkey, int currentModifiers, string azureRegion, string azureKey)
+        public SettingsForm(string currentLanguage, Keys currentHotkey, int currentModifiers, string azureRegion, string azureKey, bool includePunctuation, bool runAtStartup)
         {
             SelectedLanguage = currentLanguage;
             SelectedHotkey = currentHotkey;
             SelectedModifiers = currentModifiers;
             AzureRegion = azureRegion;
             AzureKey = azureKey;
+            this.includePunctuation = includePunctuation;
+            this.runAtStartup = runAtStartup;
             currentKey = currentHotkey;
             this.currentModifiers = currentModifiers;
             lastKey = currentHotkey;
@@ -98,7 +108,7 @@ namespace VoiceTyper
         private void InitializeComponents()
         {
             this.Text = "VoiceTyper Settings";
-            this.Size = new Size(400, 300);  // Increased height to accommodate new fields
+            this.Size = new Size(400, 380);  // Increased height to accommodate new checkboxes
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -226,6 +236,26 @@ namespace VoiceTyper
                 Visible = false
             };
 
+            // Add punctuation checkbox
+            punctuationCheckBox = new CheckBox
+            {
+                Text = "Include punctuation",
+                Font = new Font("Segoe UI", 10),
+                Location = new Point(20, 260),
+                Size = new Size(200, 25),
+                Checked = includePunctuation
+            };
+
+            // Add startup checkbox
+            startupCheckBox = new CheckBox
+            {
+                Text = "Run at Startup",
+                Font = new Font("Segoe UI", 10),
+                Location = new Point(20, 290),
+                Size = new Size(200, 25),
+                Checked = runAtStartup
+            };
+
             // Add controls
             this.Controls.AddRange(new Control[] {
                 titleLabel,
@@ -233,7 +263,9 @@ namespace VoiceTyper
                 hotkeyLabel, hotkeyValueLabel, hotkeyButton, resetHotkeyButton,
                 azureRegionLabel, azureRegionTextBox,
                 azureKeyLabel, azureKeyTextBox,
-                validationLabel
+                validationLabel,
+                punctuationCheckBox,
+                startupCheckBox
             });
 
             // Event handlers
@@ -314,6 +346,18 @@ namespace VoiceTyper
                 {
                     ConfirmHotkeyCombination();
                 }
+            };
+
+            // Add event handler for punctuation checkbox
+            punctuationCheckBox.CheckedChanged += (s, e) =>
+            {
+                PunctuationChanged?.Invoke(punctuationCheckBox.Checked);
+            };
+
+            // Add event handler for startup checkbox
+            startupCheckBox.CheckedChanged += (s, e) =>
+            {
+                StartupChanged?.Invoke(startupCheckBox.Checked);
             };
         }
 

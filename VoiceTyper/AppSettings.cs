@@ -10,6 +10,8 @@ namespace VoiceTyper
         public int HotkeyModifiers { get; set; } = 0x0002 | 0x0004; // Default: Ctrl + Shift
         public string AzureRegion { get; set; } = "eastasia";
         public string AzureSubscriptionKey { get; set; } = "";
+        public bool IncludePunctuation { get; set; } = true;
+        public bool RunAtStartup { get; set; } = false;
 
         private static readonly string SettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
