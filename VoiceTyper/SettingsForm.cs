@@ -447,9 +447,9 @@ namespace VoiceTyper
             {
                 string keyName = FormatKeyName(mainKey);
                 hotkeyValueLabel.Text = modifiers + keyName;
-            }
-            else
-            {
+                }
+                else
+                {
                 hotkeyValueLabel.Text = modifiers.TrimEnd(' ', '+');
             }
         }
