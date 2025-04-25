@@ -5,8 +5,6 @@
 
 VoiceTyper is a Windows application that enables voice-to-text input using Microsoft Azure's Speech Services. Simply press a hotkey and start speaking - your words will be typed automatically!
 
-<div align="center">
-
 ## ⬇️ Quick Download
 
 1. Go to the [Releases](https://github.com/palmasop/VoiceTyper/releases) page
@@ -28,8 +26,6 @@ System Requirements:
 - Microphone for voice input
 
 [View All Releases](https://github.com/palmasop/VoiceTyper/releases) | [Report Bug](https://github.com/palmasop/VoiceTyper/issues)
-
-</div>
 
 ## Features
 
