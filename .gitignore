@@ -32,3 +32,4 @@ dist/*
 !dist/README.md 
 
 github/
+VoiceTyper.sln

@@ -4,9 +4,13 @@ VoiceTyper is a Windows application that enables voice-to-text input using Micro
 
 <div align="center">
 
-[![Download VoiceTyper](https://img.shields.io/github/v/release/YOUR_USERNAME/VoiceTyper?label=Download&style=for-the-badge&color=blue)](https://github.com/YOUR_USERNAME/VoiceTyper/releases/latest/download/VoiceTyper.zip)
+## ⬇️ Quick Download
 
-[View Releases](https://github.com/YOUR_USERNAME/VoiceTyper/releases) | [Report Bug](https://github.com/YOUR_USERNAME/VoiceTyper/issues)
+[![Download Latest Release](https://img.shields.io/github/v/release/palmasop/VoiceTyper?label=Download%20Latest&style=for-the-badge&color=blue)](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper.zip)
+
+Just download, unzip, and run `VoiceTyper.exe`!
+
+[View All Releases](https://github.com/palmasop/VoiceTyper/releases) | [Report Bug](https://github.com/palmasop/VoiceTyper/issues)
 
 </div>
 
@@ -27,7 +31,7 @@ VoiceTyper is a Windows application that enables voice-to-text input using Micro
 
 ### Quick Start
 
-1. Go to [Releases](https://github.com/YOUR_USERNAME/VoiceTyper/releases)
+1. Go to [Releases](https://github.com/palmasop/VoiceTyper/releases)
 2. Download `VoiceTyper.zip` from the latest release
 3. Extract the zip file
 4. Run `VoiceTyper.exe`
@@ -79,7 +83,7 @@ Access settings through the system tray icon:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/VoiceTyper.git
+   git clone https://github.com/palmasop/VoiceTyper.git
    cd VoiceTyper
    ```
 

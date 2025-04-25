@@ -1,0 +1,1 @@
+🎙️ Voice-to-text input using Azure Speech Services | ⬇️ Download: https://github.com/palmasop/VoiceTyper/releases/latest 

@@ -10,7 +10,7 @@ This folder contains the latest compiled release of VoiceTyper.
 
 ## Download
 
-1. Go to the [Releases](https://github.com/YOUR_USERNAME/VoiceTyper/releases) page
+1. Go to the [Releases](https://github.com/palmasop/VoiceTyper/releases) page
 2. Download the latest `VoiceTyper.zip`
 3. Extract and run `VoiceTyper.exe`
 
