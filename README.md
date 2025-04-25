@@ -38,18 +38,6 @@ System Requirements:
 - Real-time speech recognition
 - Secure Azure Speech Service configuration
 
-## Installation
-
-1. Download [VoiceTyper_Setup.exe](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper_Setup.exe)
-2. Run the installer
-3. Follow the installation wizard
-4. Launch VoiceTyper from the Start Menu or desktop shortcut
-5. Configure your Azure Speech Service settings:
-   - Right-click the tray icon
-   - Select "Settings"
-   - Enter your Azure region and key
-   - Choose your preferred language
-
 ## First-Time Setup
 
 1. Get your Azure Speech Service credentials:
@@ -67,7 +55,7 @@ System Requirements:
 
 ## Usage
 
-1. Press the default hotkey (Ctrl + Shift + S) to start voice input
+1. Press the default hotkey (Ctrl + Shift + /) to start voice input
    - You can change this in Settings
 2. Start speaking
 3. Press the hotkey again to stop
