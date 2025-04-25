@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StartupObject>VoiceTyper.Program</StartupObject>
+    <ApplicationIcon>image\icon.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="InputSimulatorStandard" Version="1.0.0" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Vosk" Version="0.3.38" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.34.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="image\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
