@@ -3,81 +3,56 @@
 ![VoiceTyper Screenshot](docs/images/screenshot_1.png)
 ![VoiceTyper Screenshot](docs/images/screenshot_2.png)
 
-VoiceTyper is a Windows application that enables real-time voice-to-text input using Microsoft Azure's Speech Services. Simply press a hotkey and start speaking - your words will be typed automatically!
+VoiceTyper is a Windows application that enables voice-to-text input using Microsoft Azure's Speech Services. Simply press a hotkey and start speaking - your words will be typed automatically!
 
 <div align="center">
 
-# 📥 Download VoiceTyper
+## ⬇️ Quick Download
 
-<table>
-<tr>
-<td align="center" width="50%">
+1. Go to the [Releases](https://github.com/palmasop/VoiceTyper/releases) page
+2. Download the latest `VoiceTyper_Setup.exe`
+3. Run the installer and follow the prompts
+4. Launch VoiceTyper from the Start Menu or desktop shortcut
 
-### 💿 Option 1: MSI Installer
+The installer will:
 
-**Recommended for most users**
+- Install VoiceTyper to Program Files
+- Create Start Menu shortcuts
+- Add desktop shortcut (optional)
+- Register for automatic updates
 
-[⬇️ Download VoiceTyperSetup.msi](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyperSetup.msi)
+System Requirements:
 
-Size: ~78 MB
+- Windows 10 or later
+- .NET 6.0 Runtime (automatically installed if needed)
+- Microphone for voice input
 
-</td>
-<td align="center" width="50%">
-
-### 📦 Option 2: Portable Version
-
-**For advanced users**
-
-[⬇️ Download VoiceTyper.rar](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper.rar)
-
-Size: ~61 MB
-
-</td>
-</tr>
-</table>
-
-[📋 View All Releases](https://github.com/palmasop/VoiceTyper/releases) | [🐛 Report Bug](https://github.com/palmasop/VoiceTyper/issues)
-
----
-
-### Installation Steps
-
-#### MSI Installer:
-
-1. Download `VoiceTyperSetup.msi`
-2. When you see a security warning:
-   - Click "More info" > "Run anyway", or
-   - Right-click > Properties > check "Unblock" > Apply > OK
-3. Follow the installation wizard
-4. Launch from Start Menu after installation
-
-#### Portable Version:
-
-1. Download `VoiceTyper.rar`
-2. Extract using WinRAR or 7-Zip
-3. Run `VoiceTyper.exe` directly
-4. Optional: Create desktop shortcut
+[View All Releases](https://github.com/palmasop/VoiceTyper/releases) | [Report Bug](https://github.com/palmasop/VoiceTyper/issues)
 
 </div>
 
 ## Features
 
-- Real-time voice-to-text transcription
-- Support for multiple languages:
-  - English (US)
-  - Chinese (Mandarin)
+- Voice-to-text typing in multiple languages:
   - Chinese (Cantonese)
-- System tray integration for easy access
-- Customizable hotkey support
-- Visual feedback during voice recognition
-- Debug logging for troubleshooting
+  - Chinese (Mandarin)
+  - English
+- Customizable hotkey for starting/stopping voice input
+- System tray integration
+- Real-time speech recognition
+- Secure Azure Speech Service configuration
 
-## System Requirements
+## Installation
 
-- Windows 10 or later (64-bit)
-- .NET 6.0 Runtime (automatically installed if needed)
-- Microphone for voice input
-- Internet connection (for Azure Speech Services)
+1. Download [VoiceTyper_Setup.exe](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper_Setup.exe)
+2. Run the installer
+3. Follow the installation wizard
+4. Launch VoiceTyper from the Start Menu or desktop shortcut
+5. Configure your Azure Speech Service settings:
+   - Right-click the tray icon
+   - Select "Settings"
+   - Enter your Azure region and key
+   - Choose your preferred language
 
 ## First-Time Setup
 
@@ -187,14 +162,6 @@ VoiceTyper/
 ├── README.md
 └── VoiceTyper.sln     # Solution file
 ```
-
-## Security Note
-
-VoiceTyper is an open-source application. You can:
-
-- View the complete source code in this repository
-- Build the application yourself from source
-- Verify the installer's authenticity through GitHub's release system
 
 ## License
 
