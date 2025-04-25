@@ -9,9 +9,23 @@ VoiceTyper is a Windows application that enables voice-to-text input using Micro
 
 ## ⬇️ Quick Download
 
-[![Download Latest Release](https://img.shields.io/github/v/release/palmasop/VoiceTyper?label=Download%20Installer&style=for-the-badge&color=blue)](https://github.com/palmasop/VoiceTyper/releases/latest/download/VoiceTyper_Setup.exe)
+1. Go to the [Releases](https://github.com/palmasop/VoiceTyper/releases) page
+2. Download the latest `VoiceTyper_Setup.exe`
+3. Run the installer and follow the prompts
+4. Launch VoiceTyper from the Start Menu or desktop shortcut
 
-Just download and run the installer!
+The installer will:
+
+- Install VoiceTyper to Program Files
+- Create Start Menu shortcuts
+- Add desktop shortcut (optional)
+- Register for automatic updates
+
+System Requirements:
+
+- Windows 10 or later
+- .NET 6.0 Runtime (automatically installed if needed)
+- Microphone for voice input
 
 [View All Releases](https://github.com/palmasop/VoiceTyper/releases) | [Report Bug](https://github.com/palmasop/VoiceTyper/issues)
 
@@ -76,6 +90,8 @@ Access settings through the system tray icon:
 - Visual Studio 2022 or later
 - .NET 6.0 SDK
 - Windows 10 or later
+- WiX Toolset v4
+- WiX Toolset Visual Studio 2022 Extension
 
 ### Build Steps
 
@@ -96,26 +112,31 @@ Access settings through the system tray icon:
    dotnet build
    ```
 
-### Create Distribution Build
+### Create Installer
+
+1. Build the main project in Release configuration
+2. Build the `installer_wix` project to generate the installer
+3. The installer will be created at `installer_wix\bin\Release\VoiceTyper_Setup.exe`
+
+You can also build everything at once using:
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true
+dotnet build -c Release
 ```
-
-The executable will be in `bin\Release\net6.0-windows\win-x64\publish\`
 
 ## Project Structure
 
 ```
 VoiceTyper/
-├── dist/               # Distribution builds
+├── .github/            # GitHub workflows and configuration
+├── VoiceTyper/         # Main application project
+├── VoiceTyperSetup/    # WiX installer project
 ├── docs/              # Documentation
 │   └── images/        # Screenshots and images
-├── src/               # Source code
-│   └── VoiceTyper/    # Main project
 ├── .gitignore
 ├── LICENSE
-└── README.md
+├── README.md
+└── VoiceTyper.sln     # Solution file
 ```
 
 ## License
