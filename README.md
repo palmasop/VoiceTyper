@@ -3,7 +3,7 @@
 ![VoiceTyper Screenshot](docs/images/screenshot_1.png)
 ![VoiceTyper Screenshot](docs/images/screenshot_2.png)
 
-VoiceTyper is a Windows application that enables voice-to-text input using Microsoft Azure's Speech Services. Simply press a hotkey and start speaking - your words will be typed automatically!
+VoiceTyper is a Windows application that enables voice-to-text input using Microsoft Azure's Speech Services. Simply press a hotkey and start speaking - your words will be typed automatically, with support for multiple languages and automatic language detection!
 
 ## ⬇️ Quick Download
 
@@ -24,18 +24,40 @@ System Requirements:
 - Windows 10 or later
 - .NET 6.0 Runtime (automatically installed if needed)
 - Microphone for voice input
+- Internet connection for Azure Speech Services
 
 [View All Releases](https://github.com/palmasop/VoiceTyper/releases) | [Report Bug](https://github.com/palmasop/VoiceTyper/issues)
 
 ## Features
 
-- Voice-to-text typing in multiple languages:
-  - Chinese (Cantonese)
-  - Chinese (Mandarin)
-  - English
+- Voice-to-text typing with comprehensive language support:
+  - East Asian Languages:
+    - Chinese (Cantonese) with English/Mandarin mixing
+    - Chinese (Mandarin) with English/Cantonese mixing
+    - Chinese (Traditional) with English/Simplified mixing
+    - Japanese with Chinese/English mixing
+    - Korean with Chinese/English mixing
+  - European Languages:
+    - English (US)
+    - French with English mixing
+    - German with English mixing
+    - Spanish with English mixing
+    - Italian with English mixing
+    - Portuguese with Spanish/English mixing
+    - Russian with English mixing
+  - Southeast Asian Languages:
+    - Thai with Chinese/English mixing
+    - Vietnamese with Chinese/English mixing
+    - Indonesian with Malay/English mixing
+    - Malay with Indonesian/English mixing
+- Intelligent mixed-language recognition
+- Automatic language detection during speech
+- Automatic punctuation support (optional)
 - Customizable hotkey for starting/stopping voice input
-- System tray integration
-- Real-time speech recognition
+- System tray integration with easy access to settings
+- Real-time speech recognition with visual feedback
+- Debug logging for troubleshooting
+- Run at startup option
 - Secure Azure Speech Service configuration
 
 ## First-Time Setup
@@ -50,23 +72,28 @@ System Requirements:
    - Right-click the tray icon
    - Select "Settings"
    - Enter your Azure region and key
-   - Choose your preferred language
+   - Choose your preferred primary language
+   - Enable/disable automatic punctuation
+   - Configure startup options
    - Or use the default shared credentials (limited usage)
 
 ## Usage
 
 1. Press the default hotkey (Ctrl + Shift + /) to start voice input
    - You can change this in Settings
-2. Start speaking
+2. Start speaking in any supported language
+   - The system will automatically detect and handle language switching
 3. Press the hotkey again to stop
 
 ## Configuration
 
 Access settings through the system tray icon:
 
-- Language selection
+- Language selection with mixing options
+- Automatic punctuation toggle
 - Hotkey configuration
 - Azure Speech Service settings
+- Run at startup option
 - Debug logs access
 
 ## Uninstallation

@@ -44,18 +44,54 @@ namespace VoiceTyper
         private bool isHotkeyEnabled = true;
         private AppSettings settings;
 
-        private readonly Dictionary<string, string> languageCodes = new Dictionary<string, string>
+        private readonly Dictionary<string, string[]> languageMixedSupport = new Dictionary<string, string[]>
         {
-            { "yue", "zh-HK" },  // Cantonese (Hong Kong)
-            { "zh", "zh-CN" },   // Mandarin (Simplified)
-            { "en", "en-US" }    // English (US)
+            // East Asian combinations
+            { "zh-HK", new[] { "zh-HK", "zh-CN", "en-US" } },  // Cantonese + Mandarin + English
+            { "zh-CN", new[] { "zh-CN", "zh-HK", "en-US" } },  // Mandarin + Cantonese + English
+            { "zh-TW", new[] { "zh-TW", "zh-CN", "en-US" } },  // Traditional + Simplified + English
+            { "ja-JP", new[] { "ja-JP", "zh-CN", "en-US" } },  // Japanese + Chinese + English
+            { "ko-KR", new[] { "ko-KR", "zh-CN", "en-US" } },  // Korean + Chinese + English
+
+            // European combinations
+            { "en-US", new[] { "en-US" } },                    // English only
+            { "fr-FR", new[] { "fr-FR", "en-US" } },          // French + English
+            { "de-DE", new[] { "de-DE", "en-US" } },          // German + English
+            { "es-ES", new[] { "es-ES", "en-US" } },          // Spanish + English
+            { "it-IT", new[] { "it-IT", "en-US" } },          // Italian + English
+            { "pt-BR", new[] { "pt-BR", "es-ES", "en-US" } }, // Portuguese + Spanish + English
+            { "ru-RU", new[] { "ru-RU", "en-US" } },          // Russian + English
+
+            // Southeast Asian combinations
+            { "th-TH", new[] { "th-TH", "zh-CN", "en-US" } }, // Thai + Chinese + English
+            { "vi-VN", new[] { "vi-VN", "zh-CN", "en-US" } }, // Vietnamese + Chinese + English
+            { "id-ID", new[] { "id-ID", "ms-MY", "en-US" } }, // Indonesian + Malay + English
+            { "ms-MY", new[] { "ms-MY", "id-ID", "en-US" } }  // Malay + Indonesian + English
         };
 
         private readonly Dictionary<string, string> languageDisplayNames = new Dictionary<string, string>
         {
+            // East Asian Languages
             { "zh-HK", "Chinese (Cantonese)" },
             { "zh-CN", "Chinese (Mandarin)" },
-            { "en-US", "English" }
+            { "zh-TW", "Chinese (Traditional)" },
+            { "ja-JP", "Japanese" },
+            { "ko-KR", "Korean" },
+
+            // European Languages
+            { "en-US", "English (US)" },
+            { "fr-FR", "French" },
+            { "de-DE", "German" },
+            { "es-ES", "Spanish" },
+            { "it-IT", "Italian" },
+            { "pt-BR", "Portuguese" },
+            { "ru-RU", "Russian" },
+
+            // Southeast Asian Languages
+            { "th-TH", "Thai" },
+            { "vi-VN", "Vietnamese" },
+            { "id-ID", "Indonesian" },
+            { "ms-MY", "Malay" }
         };
 
         private ToolStripMenuItem? languageMenu;
@@ -297,205 +333,69 @@ namespace VoiceTyper
         {
             if (languageMenu?.DropDownItems == null) return;
 
+            // Uncheck all items first
             foreach (ToolStripMenuItem item in languageMenu.DropDownItems.OfType<ToolStripMenuItem>())
             {
-                if (item.Tag is string langCode)
+                item.Checked = false;
+            }
+
+            // Check only the selected language
+            foreach (ToolStripMenuItem item in languageMenu.DropDownItems.OfType<ToolStripMenuItem>())
+            {
+                if (item.Tag is string langCode && langCode == selectedLanguage)
                 {
-                    item.Checked = languageCodes.TryGetValue(langCode, out string? azureCode) && azureCode == selectedLanguage;
+                    item.Checked = true;
+                    break;  // Exit after finding the match
                 }
             }
         }
 
-        public void ShowSettings()
-        {
-            // Stop voice capture if it's active
-            if (isRecording)
-            {
-                StopAndTranscribe();
-            }
-
-            var settingsForm = new SettingsForm(
-                settings.Language, 
-                settings.Hotkey, 
-                settings.HotkeyModifiers,
-                settings.AzureRegion,
-                settings.AzureSubscriptionKey,
-                settings.IncludePunctuation,
-                settings.RunAtStartup
-            );
-            
-            // Handle settings changes
-            settingsForm.LanguageChanged += (newLanguage) =>
-            {
-                if (settings.Language != newLanguage)
-                {
-                    settings.Language = newLanguage;
-                    settings.Save();
-                    UpdateLanguageMenuCheckedState(newLanguage);
-                    recognizer?.Dispose();
-                    InitializeSpeechRecognizer();
-                }
-            };
-
-            settingsForm.HotkeyChanged += (newHotkey, newModifiers) =>
-            {
-                if (settings.Hotkey != newHotkey || settings.HotkeyModifiers != newModifiers)
-                {
-                    if (isHotkeyEnabled)
-                    {
-                        UnregisterHotKey(this.Handle, HOTKEY_ID);
-                    }
-                    settings.Hotkey = newHotkey;
-                    settings.HotkeyModifiers = newModifiers;
-                    settings.Save();
-                    if (isHotkeyEnabled)
-                    {
-                        RegisterHotKey(this.Handle, HOTKEY_ID, settings.HotkeyModifiers, (int)settings.Hotkey);
-                    }
-                }
-            };
-
-            settingsForm.HotkeyCapturingStateChanged += (isCapturing) =>
-            {
-                if (isCapturing && isHotkeyEnabled)
-                {
-                    UnregisterHotKey(this.Handle, HOTKEY_ID);
-                    isHotkeyEnabled = false;
-                }
-                else if (!isCapturing && !isHotkeyEnabled)
-                {
-                    RegisterHotKey(this.Handle, HOTKEY_ID, settings.HotkeyModifiers, (int)settings.Hotkey);
-                    isHotkeyEnabled = true;
-                }
-            };
-
-            settingsForm.AzureConfigChanged += (newRegion, newKey) =>
-            {
-                bool needRestart = false;
-
-                if (settings.AzureRegion != newRegion)
-                {
-                    settings.AzureRegion = newRegion;
-                    region = newRegion;
-                    needRestart = true;
-                }
-
-                if (settings.AzureSubscriptionKey != newKey)
-                {
-                    settings.AzureSubscriptionKey = newKey;
-                    subscriptionKey = newKey;
-                    needRestart = true;
-                }
-
-                if (needRestart)
-                {
-                    settings.Save();
-                    recognizer?.Dispose();
-                    InitializeSpeechRecognizer();
-                }
-            };
-
-            settingsForm.PunctuationChanged += (includePunctuation) =>
-            {
-                if (settings.IncludePunctuation != includePunctuation)
-                {
-                    settings.IncludePunctuation = includePunctuation;
-                    settings.Save();
-                    recognizer?.Dispose();
-                    InitializeSpeechRecognizer();
-                }
-            };
-
-            settingsForm.StartupChanged += (runAtStartup) =>
-            {
-                if (settings.RunAtStartup != runAtStartup)
-                {
-                    settings.RunAtStartup = runAtStartup;
-                    settings.Save();
-                    UpdateStartupRegistry(runAtStartup);
-                }
-            };
-
-            settingsForm.Show();
-        }
-
-        private void UpdateStartupRegistry(bool enable)
-        {
-            try
-            {
-                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(
-                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
-                    true))
-                {
-                    if (key != null)
-                    {
-                        string appPath = Application.ExecutablePath;
-                        if (enable)
-                        {
-                            key.SetValue("VoiceTyper", appPath);
-                        }
-                        else
-                        {
-                            key.DeleteValue("VoiceTyper", false);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error managing startup settings: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void InitializeLanguageMenu()
-        {
-            languageMenu = new ToolStripMenuItem("Language");
-
-            foreach (var lang in languageCodes)
-            {
-                string displayName = "Unknown";
-                if (languageCodes.TryGetValue(lang.Key, out string? azureCode) && 
-                    languageDisplayNames.TryGetValue(azureCode, out string? name))
-                {
-                    displayName = name;
-                }
-
-                var menuItem = new ToolStripMenuItem(displayName);
-                menuItem.Tag = lang.Key;
-                menuItem.Click += LanguageMenuItem_Click;
-                languageMenu.DropDownItems.Add(menuItem);
-            }
-
-            // Add language menu at the beginning
-            trayMenu?.Items.Insert(0, languageMenu);
-
-            // Set initial checked state
-            UpdateLanguageMenuCheckedState(settings.Language);
-        }
-
-        private void LanguageMenuItem_Click(object? sender, EventArgs e)
+        private async void LanguageMenuItem_Click(object? sender, EventArgs e)
         {
             if (sender is ToolStripMenuItem menuItem && menuItem.Tag is string langCode)
             {
-                // Uncheck all items
-                if (languageMenu?.DropDownItems != null)
+                try
                 {
-                    foreach (ToolStripMenuItem item in languageMenu.DropDownItems.OfType<ToolStripMenuItem>())
+                    // Stop recording if active and wait for it to complete
+                    if (isRecording)
                     {
-                        item.Checked = false;
+                        await StopAndTranscribe();
                     }
-                }
 
-                // Check the selected item
-                menuItem.Checked = true;
+                    // Uncheck all items first
+                    if (languageMenu?.DropDownItems != null)
+                    {
+                        foreach (ToolStripMenuItem item in languageMenu.DropDownItems.OfType<ToolStripMenuItem>())
+                        {
+                            item.Checked = false;
+                        }
+                    }
 
-                if (languageCodes.TryGetValue(langCode, out string? azureCode))
-                {
-                    settings.Language = azureCode;
+                    // Check only the selected item
+                    menuItem.Checked = true;
+                    settings.Language = langCode;
                     settings.Save();
-                    recognizer?.Dispose();
+
+                    // Safely dispose and reinitialize recognizer
+                    if (recognizer != null)
+                    {
+                        var oldRecognizer = recognizer;
+                        recognizer = null;
+                        try
+                        {
+                            oldRecognizer.Dispose();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // Ignore if already disposed
+                        }
+                    }
                     InitializeSpeechRecognizer();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error changing language: {ex.Message}");
+                    MessageBox.Show($"Error changing language: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -506,9 +406,35 @@ namespace VoiceTyper
             {
                 Console.WriteLine("Initializing speech recognizer...");
                 var config = SpeechConfig.FromSubscription(subscriptionKey, region);
-                config.SpeechRecognitionLanguage = settings.Language;
-                
-                Console.WriteLine($"Using language: {settings.Language}");
+
+                // Ensure we have a valid language setting
+                if (!languageMixedSupport.ContainsKey(settings.Language))
+                {
+                    Console.WriteLine($"Warning: Invalid language setting detected. Resetting to English.");
+                    settings.Language = "en-US";
+                    settings.Save();
+                }
+
+                // Get supported languages for the selected language
+                string[] sourceLanguages = languageMixedSupport[settings.Language];
+
+                // Create language config based on selected language
+                if (settings.Language == "en-US")
+                {
+                    // English only
+                    sourceLanguages = new[] { "en-US" };
+                    config.SpeechRecognitionLanguage = "en-US";
+                    Console.WriteLine("Initializing with English only mode");
+                }
+                else
+                {
+                    // Selected language + English
+                    var autoDetectSourceLanguageConfig = AutoDetectSourceLanguageConfig.FromLanguages(sourceLanguages);
+                    Console.WriteLine($"Initializing with bilingual mode: {languageDisplayNames[settings.Language]}");
+                }
+
+                Console.WriteLine($"Active languages: {string.Join(", ", sourceLanguages)}");
+
                 config.SetProperty("SpeechServiceConnection_LatencyOptimizationEnabled", "1");
                 config.SetProperty("SpeechServiceConnection_ContinuousDictation", "1");
                 
@@ -518,7 +444,17 @@ namespace VoiceTyper
                     ServicePropertyChannel.UriQueryParameter);
 
                 var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
-                recognizer = new SpeechRecognizer(config, audioConfig);
+
+                // Initialize recognizer based on mode
+                if (settings.Language == "en-US")
+                {
+                    recognizer = new SpeechRecognizer(config, audioConfig);
+                }
+                else
+                {
+                    var autoDetectSourceLanguageConfig = AutoDetectSourceLanguageConfig.FromLanguages(sourceLanguages);
+                    recognizer = new SpeechRecognizer(config, autoDetectSourceLanguageConfig, audioConfig);
+                }
 
                 recognizer.Recognized += (s, e) =>
                 {
@@ -545,7 +481,13 @@ namespace VoiceTyper
                             }
                         }
 
+                        // Get detected language
+                        var detectedLanguage = e.Result.Properties.GetProperty(PropertyId.SpeechServiceConnection_RecoLanguage);
+                        var detectedLanguageDisplay = languageDisplayNames.ContainsKey(detectedLanguage) ? 
+                            languageDisplayNames[detectedLanguage] : detectedLanguage;
+                        Console.WriteLine($"Detected language: {detectedLanguageDisplay}");
                         Console.WriteLine($"Recognized text: {text}");
+
                         if (!string.IsNullOrEmpty(text))
                         {
                             try
@@ -713,10 +655,11 @@ namespace VoiceTyper
                     settingsForm.ValidateAzureConfig();
                     
                     // Handle settings changes
-                    settingsForm.LanguageChanged += (newLanguage) =>
+                    settingsForm.LanguageChanged += async (newLanguage) =>
                     {
                         if (settings.Language != newLanguage)
                         {
+                            await StopAndTranscribe();
                             settings.Language = newLanguage;
                             settings.Save();
                             UpdateLanguageMenuCheckedState(newLanguage);
@@ -835,23 +778,36 @@ namespace VoiceTyper
             }
         }
 
-        private async void StopAndTranscribe()
+        private async Task StopAndTranscribe()
         {
-            if (!isRecording || recognizer == null)
+            if (!isRecording)
             {
                 return;
             }
             
             try
             {
-                await recognizer.StopContinuousRecognitionAsync();
+                if (recognizer != null)
+                {
+                    await recognizer.StopContinuousRecognitionAsync();
+                    detectingTooltip?.Hide();
+                    isRecording = false;
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // If recognizer was disposed, just reset the state
                 detectingTooltip?.Hide();
                 isRecording = false;
+                recognizer = null;
+                InitializeSpeechRecognizer();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error stopping recognition: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 isRecording = false;
+                recognizer = null;
+                InitializeSpeechRecognizer();
             }
         }
 
@@ -866,7 +822,7 @@ namespace VoiceTyper
                 }
                 else
                 {
-                    StopAndTranscribe();
+                    _ = StopAndTranscribe();
                 }
             }
             base.WndProc(ref m);
@@ -886,6 +842,14 @@ namespace VoiceTyper
 
         public void LoadSettings(AppSettings settings)
         {
+            // Validate and fix language setting if invalid
+            if (!languageMixedSupport.ContainsKey(settings.Language))
+            {
+                Console.WriteLine($"Warning: Saved language '{settings.Language}' is no longer supported. Resetting to English.");
+                settings.Language = "en-US";
+                settings.Save();
+            }
+
             this.settings = settings;
             UpdateLanguageMenuCheckedState(settings.Language);
 
@@ -944,6 +908,166 @@ namespace VoiceTyper
                 MessageBox.Show($"Error managing startup settings: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        public async void ShowSettings()
+        {
+            // Stop voice capture if it's active
+            await StopAndTranscribe();
+
+            var settingsForm = new SettingsForm(
+                settings.Language, 
+                settings.Hotkey, 
+                settings.HotkeyModifiers,
+                settings.AzureRegion,
+                settings.AzureSubscriptionKey,
+                settings.IncludePunctuation,
+                settings.RunAtStartup
+            );
+            
+            // Handle settings changes
+            settingsForm.LanguageChanged += async (newLanguage) =>
+            {
+                if (settings.Language != newLanguage)
+                {
+                    await StopAndTranscribe();
+                    settings.Language = newLanguage;
+                    settings.Save();
+                    UpdateLanguageMenuCheckedState(newLanguage);
+                    recognizer?.Dispose();
+                    InitializeSpeechRecognizer();
+                }
+            };
+
+            settingsForm.HotkeyChanged += (newHotkey, newModifiers) =>
+            {
+                if (settings.Hotkey != newHotkey || settings.HotkeyModifiers != newModifiers)
+                {
+                    if (isHotkeyEnabled)
+                    {
+                        UnregisterHotKey(this.Handle, HOTKEY_ID);
+                    }
+                    settings.Hotkey = newHotkey;
+                    settings.HotkeyModifiers = newModifiers;
+                    settings.Save();
+                    if (isHotkeyEnabled)
+                    {
+                        RegisterHotKey(this.Handle, HOTKEY_ID, settings.HotkeyModifiers, (int)settings.Hotkey);
+                    }
+                }
+            };
+
+            settingsForm.HotkeyCapturingStateChanged += (isCapturing) =>
+            {
+                if (isCapturing && isHotkeyEnabled)
+                {
+                    UnregisterHotKey(this.Handle, HOTKEY_ID);
+                    isHotkeyEnabled = false;
+                }
+                else if (!isCapturing && !isHotkeyEnabled)
+                {
+                    RegisterHotKey(this.Handle, HOTKEY_ID, settings.HotkeyModifiers, (int)settings.Hotkey);
+                    isHotkeyEnabled = true;
+                }
+            };
+
+            settingsForm.AzureConfigChanged += (newRegion, newKey) =>
+            {
+                bool needRestart = false;
+
+                if (settings.AzureRegion != newRegion)
+                {
+                    settings.AzureRegion = newRegion;
+                    region = newRegion;
+                    needRestart = true;
+                }
+
+                if (settings.AzureSubscriptionKey != newKey)
+                {
+                    settings.AzureSubscriptionKey = newKey;
+                    subscriptionKey = newKey;
+                    needRestart = true;
+                }
+
+                if (needRestart)
+                {
+                    settings.Save();
+                    recognizer?.Dispose();
+                    InitializeSpeechRecognizer();
+                }
+            };
+
+            settingsForm.PunctuationChanged += (includePunctuation) =>
+            {
+                if (settings.IncludePunctuation != includePunctuation)
+                {
+                    settings.IncludePunctuation = includePunctuation;
+                    settings.Save();
+                    recognizer?.Dispose();
+                    InitializeSpeechRecognizer();
+                }
+            };
+
+            settingsForm.StartupChanged += (runAtStartup) =>
+            {
+                if (settings.RunAtStartup != runAtStartup)
+                {
+                    settings.RunAtStartup = runAtStartup;
+                    settings.Save();
+                    UpdateStartupRegistry(runAtStartup);
+                }
+            };
+
+            settingsForm.Show();
+        }
+
+        private void UpdateStartupRegistry(bool enable)
+        {
+            try
+            {
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                    true))
+                {
+                    if (key != null)
+                    {
+                        string appPath = Application.ExecutablePath;
+                        if (enable)
+                        {
+                            key.SetValue("VoiceTyper", appPath);
+                        }
+                        else
+                        {
+                            key.DeleteValue("VoiceTyper", false);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error managing startup settings: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void InitializeLanguageMenu()
+        {
+            languageMenu = new ToolStripMenuItem("Language");
+
+            foreach (var lang in languageMixedSupport)
+            {
+                string displayName = languageDisplayNames.TryGetValue(lang.Key, out string? name) ? name : "Unknown";
+                var menuItem = new ToolStripMenuItem(displayName);
+                menuItem.Tag = lang.Key;  // Store the language code directly
+                menuItem.Click += LanguageMenuItem_Click;
+                languageMenu.DropDownItems.Add(menuItem);
+            }
+
+            // Add language menu at the beginning
+            trayMenu?.Items.Insert(0, languageMenu);
+
+            // Set initial checked state
+            UpdateLanguageMenuCheckedState(settings.Language);
         }
     }
 }

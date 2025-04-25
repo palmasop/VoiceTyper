@@ -63,9 +63,27 @@ namespace VoiceTyper
 
         private Dictionary<string, string> languages = new Dictionary<string, string>
         {
+            // East Asian Languages
             { "zh-HK", "Chinese (Cantonese)" },
             { "zh-CN", "Chinese (Mandarin)" },
-            { "en-US", "English" }
+            { "zh-TW", "Chinese (Traditional)" },
+            { "ja-JP", "Japanese" },
+            { "ko-KR", "Korean" },
+
+            // European Languages
+            { "en-US", "English (US)" },
+            { "fr-FR", "French" },
+            { "de-DE", "German" },
+            { "es-ES", "Spanish" },
+            { "it-IT", "Italian" },
+            { "pt-BR", "Portuguese" },
+            { "ru-RU", "Russian" },
+
+            // Southeast Asian Languages
+            { "th-TH", "Thai" },
+            { "vi-VN", "Vietnamese" },
+            { "id-ID", "Indonesian" },
+            { "ms-MY", "Malay" }
         };
 
         public SettingsForm(string currentLanguage, Keys currentHotkey, int currentModifiers, string azureRegion, string azureKey, bool includePunctuation, bool runAtStartup)
@@ -314,7 +332,7 @@ namespace VoiceTyper
                 if (languageComboBox.SelectedItem != null)
                 {
                     string selectedDisplayName = languageComboBox.SelectedItem.ToString() ?? "";
-                    SelectedLanguage = languages.FirstOrDefault(x => x.Value == selectedDisplayName).Key ?? SelectedLanguage;
+                    SelectedLanguage = languages.FirstOrDefault(x => x.Value == selectedDisplayName).Key;
                     LanguageChanged?.Invoke(SelectedLanguage);
                 }
             };
