@@ -7,7 +7,7 @@ VoiceTyper is a Windows application that enables voice-to-text input using Micro
 
 ## 🔗 Quick Links
 
-- 🌐 [Official Website](https://voicetyper.pages.dev)
+- 🌐 [Official Website](https://voicetyper.palmasop.com)
 - ⬇️ [Download Latest Release](https://github.com/palmasop/VoiceTyper/releases)
 - 🐛 [Report Bug](https://github.com/palmasop/VoiceTyper/issues)
 
